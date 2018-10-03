@@ -34,9 +34,6 @@ def main():
     qt.answer()
     
     
-def print_windows():
-    win32gui.EnumWindows(callback, extra)
-    
     
     
 if __name__ == "__main__":
