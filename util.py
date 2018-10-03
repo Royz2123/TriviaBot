@@ -132,8 +132,11 @@ def image_to_text(image):
     return text
     
     
+"""
+Move a window to pos. Not working with all windows for some reason
+"""
 def move_window(pos, wnd_name):
-    wnd = win32gui.FindWindow("IEFrame", None)
+    wnd = win32gui.FindWindow(wnd_name, None)
     print(wnd)
     
     if len(pos) == 4:
