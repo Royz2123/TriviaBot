@@ -10,13 +10,10 @@ PHONE_START_Y = 200
 PHONE_HEIGHT = 880
 PHONE_WIDTH = 580
 
-def main():
-    """"
-    titles = [name for name in util.get_titles() if name != ""]
-    print(titles)
-    util.move_window((0,0, PHONE_HEIGHT, PHONE_WIDTH), "Notepad++")
-    """
-    
+"""
+Handles a question
+"""
+def handle_question():
     image = util.take_screenshot()
     image = image[
         PHONE_START_Y : PHONE_START_Y + PHONE_HEIGHT, 
@@ -26,12 +23,25 @@ def main():
    
     cv2.imshow("Image", image)
     cv2.waitKey(0)
-     
     
     text = util.image_to_text(image)
     quest, options = util.parse_text(text)
     qt = trivia.TriviaQuestion(quest, options)
     qt.answer()
+
+
+def main():
+    """"
+    titles = [name for name in util.get_titles() if name != ""]
+    print(titles)
+    util.move_window((0,0, PHONE_HEIGHT, PHONE_WIDTH), "Notepad++")
+    """
+    
+    while True:
+        input("Press Enter to continue...")
+        handle_question()
+        
+    
     
     
     

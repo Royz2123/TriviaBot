@@ -8,6 +8,7 @@ import win32gui
 import urllib.parse
 import urllib.request
 from bs4 import BeautifulSoup
+import re
 
 import time
 import os
@@ -58,7 +59,6 @@ def get_response(query):
     queries += 1
     print("Total queries: ", str(queries))
 
-
     # print(query)
     req = urllib.request.Request(query, headers=headers)
     response = urllib.request.urlopen(req).read()
@@ -67,7 +67,8 @@ def get_response(query):
     for script in soup(["script", "style"]):
         script.decompose()
     return soup.get_text().lower()
-
+       
+    
     
 """
 Get titles of all the windows on the screen

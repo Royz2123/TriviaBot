@@ -5,8 +5,14 @@ import re
 import util
 import questions
 
+from fuzzywuzzy import fuzz
+from fuzzywuzzy import process
+
+
 UNCERTAIN_ANSWER = -1
 QUERY_TYPES = 4
+
+THRESH = 40
 
 class TriviaQuestion(object):
     def __init__(self, quest, ans, pre_query=False):
@@ -41,7 +47,7 @@ class TriviaQuestion(object):
     """
     def choose_answer(self, ans_occ):
         # TEMP: print occurences
-        print(ans_occ)
+        # print(ans_occ)
     
         # find most probable index
         if ' NOT ' not in self._quest: 
@@ -60,16 +66,37 @@ class TriviaQuestion(object):
         return index
      
     """
+    Find occurences using fuzzy wuzzy
+    """ 
+    def count_occurences(self, text, patterns, fuzzy_mode=False):
+        if fuzzy_mode:
+            # fuzzy count
+            occs = dict(
+                process.extract(text, patterns, limit=len(patterns))
+            )
+            occs = [occs[pattern] for pattern in patterns]
+            
+            # if all are smaller than thresh, useless
+            if max(occs) < THRESH:
+                return [0] * len(patterns)
+            return occs
+        else:
+            # regular count
+            occs = [0] * len(patterns)
+            
+            # count the occurences of each answer in google
+            for i in range(0, len(self._ans)):
+                occs[i] += text.count(self._ans[i])
+                
+            return occs
+                
+             
+    """
     Approach 1: Search for the answer that shows up the most in google
     """
     def method1(self):
-        ans_occ = [0] * len(self._ans)
-        content = self.get_query(0)
-        
-        # count the occurences of each answer in google
-        for i in range(0, len(self._ans)):
-            ans_occ[i] += content.count(self._ans[i])
-            
+        ans_occ = self.count_occurences(self.get_query(0), self._ans)
+     
         # return the most probable answer
         return self.choose_answer(ans_occ)
 
@@ -77,17 +104,22 @@ class TriviaQuestion(object):
     """
     Approach 2: Search for the answer and the choice together
     """
-    def method2(self):
-        ans_occ = [0] * len(self._ans)
-        
+    def method2(self):  
+        total_occ = [0] * len(self._ans)
+    
         # query all the choices
         for choice_index in range(1, QUERY_TYPES):
-            content = self.get_query(choice_index)
-            for i in range(0, len(self._ans)):
-                ans_occ[i] += content.count(self._ans[i])
+            # count occurences for this query
+            curr_occ = self.count_occurences(
+                self.get_query(choice_index), 
+                self._ans    
+            )
+            
+            # add them to total occurences
+            total_occ = [x+y for x,y in zip(total_occ, curr_occ)]
 
         # return the most probable answer
-        return self.choose_answer(ans_occ)
+        return self.choose_answer(total_occ)
         
         
     """
@@ -109,9 +141,31 @@ class TriviaQuestion(object):
         # return the most probable answer
         return self.choose_answer(ans_occ)
         
+    """
+    Approach 4: Like approach 1 without fuzziness
+    """
+    def method4(self):
+        ans_occ = self.count_occurences(self.get_query(0), self._ans, False)
+     
+        # return the most probable answer
+        return self.choose_answer(ans_occ)
+        
+    """
+    Approach 5: Like approach 1 with both fuzziness and no fuzziness
+    """
+    def method5(self):
+        occ1 = self.count_occurences(self.get_query(0), self._ans, False)
+        occ2 = self.count_occurences(self.get_query(0), self._ans, True)
+        print(occ2)
+        # add them to total occurences
+        total_occ = [x+y for x,y in zip(occ1, occ2)]
+     
+        # return the most probable answer
+        return self.choose_answer(total_occ)
+        
         
     ALL_METHODS = [method1, method2, method3]
-    CHOSEN_METHODS = [method1, method2, method3]
+    CHOSEN_METHODS = [method1, method2, method3, method4, method5]
     
     """
     Strategy1: Basic Poll, Base Strategy
