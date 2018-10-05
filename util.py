@@ -9,6 +9,7 @@ import urllib.parse
 import urllib.request
 from bs4 import BeautifulSoup
 import re
+import pyautogui
 
 import time
 import os
@@ -21,12 +22,46 @@ google_url = "https://www.google.com/search?q="
 yahoo_url = "https://search.yahoo.com/search?p="
 queries = 0
 
+QUESTION_IMAGE_PATH = "screenshots/question.jpg"
+
+
+def question_picture(image):
+    corner_up_right = (610, 146)
+    width = 20
+    hight = 20
+    for x in range(corner_up_right[0],corner_up_right[0]+width):
+        for y in range(corner_up_right[1],corner_up_right[1]+hight):
+            if not all([a>b for a,b in zip(image[y, x], [250, 250, 250])]):
+                return False
+    return True
+
+
+"""
+Mouse click
+"""
+def do_click(x):
+    pyautogui.moveTo(x[0], x[1])
+    pyautogui.click()
+
+"""
+Returns the location forever
+"""
+def track_position():
+    while True:
+        time.sleep(0.1)
+        print(pyautogui.position())
+    return
 
 """
 Parse text into question and options
 """
 def parse_text(text):
-    quest, options = tuple(text.split("?", 1))
+    try:
+        quest, options = tuple(text.split("?", 1))
+    except:
+        print("NO QUEST")
+        return None
+    
     options = options.split("\n")
         
     # Edit options and question
@@ -112,6 +147,9 @@ def take_screenshot():
 Image to test
 """
 def image_to_text(image):
+    width, hight = image.shape[:2]
+    image = cv2.resize(image, (width * 2, hight * 2))
+
     # load the example image and convert it to grayscale
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
      
@@ -119,10 +157,12 @@ def image_to_text(image):
     # image
     gray = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
      
+    """
     # make a check to see if median blurring should be done to remove
     # noise
     gray = cv2.medianBlur(gray, 3)
-     
+    """
+    
     # apply OCR to it
     filename = "{}.png".format(os.getpid())
     cv2.imwrite(filename, gray)

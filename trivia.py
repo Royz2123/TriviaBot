@@ -26,8 +26,9 @@ class TriviaQuestion(object):
         self._responses = [None] * QUERY_TYPES
         
         # create list of all queries
-        self._queries = [self._quest]
-        self._queries += [''.join([self._quest, ' %s' % choice]) for choice in self._ans]
+        new_quest = quest.replace("NOT", "")
+        self._queries = [new_quest]
+        self._queries += [''.join([new_quest, ' %s' % choice]) for choice in self._ans]
         
         # pre query if needed
         if self._pre_query:        
@@ -165,18 +166,18 @@ class TriviaQuestion(object):
         
         
     ALL_METHODS = [method1, method2, method3]
-    CHOSEN_METHODS = [method1, method2, method3, method4, method5]
+    CHOSEN_METHODS = [method1, method3, method4, method5]
     
     """
     Strategy1: Basic Poll, Base Strategy
     """
-    def strategy1(self, poll_from=0):
-        answers = [method(self) for method in TriviaQuestion.CHOSEN_METHODS[poll_from:]]
-        print(answers)
-        answers = [answer for answer in answers if answer != UNCERTAIN_ANSWER]
-        
+    def strategy1(self, poll_from=0): 
         # find most likely answer
         try:
+            answers = [method(self) for method in TriviaQuestion.CHOSEN_METHODS[poll_from:]]
+            print(answers)
+            answers = [answer for answer in answers if answer != UNCERTAIN_ANSWER]
+            
             # print("Polled answers: ", list(answers))
             return util.most_common(answers)
         except:
